@@ -39,8 +39,6 @@ img_path = "sample_image2.jpg"
 if not os.path.exists(checkpoint):
   os.system('wget https://dl.fbaipublicfiles.com/segment_anything/'+checkpoint)
 
-exit()
-
 img = cv2.imread(img_path)
 
 sam = sam_model_registry[model_type](checkpoint=checkpoint)
