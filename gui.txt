@@ -1,0 +1,65 @@
+import bpy
+import bgl
+import blf
+import gpu
+from mathutils import Vector, Matrix
+
+class CustomOpenGLPanel(bpy.types.Panel):
+    bl_idname = "VIEW3D_PT_custom_opengl_panel"
+    bl_label = "Custom OpenGL Panel"
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+    bl_category = "Custom Add-On"
+
+    def draw(self, context):
+        # Set up the OpenGL drawing context
+        shader = gpu.shader.from_builtin('2D_UNIFORM_COLOR')
+        bgl.glEnable(bgl.GL_BLEND)
+        bgl.glBlendFunc(bgl.GL_SRC_ALPHA, bgl.GL_ONE_MINUS_SRC_ALPHA)
+        bgl.glEnable(bgl.GL_LINE_SMOOTH)
+        bgl.glLineWidth(2.0)
+
+        # Get the current camera position and orientation
+        camera = context.scene.camera
+        if not camera:
+            return
+        camera_position = camera.matrix_world.to_translation()
+        camera_rotation = camera.matrix_world.to_quaternion()
+
+        # Draw the custom GUI element relative to the camera
+        draw_custom_element(shader, camera_position, camera_rotation)
+
+        # Clean up the OpenGL drawing context
+        bgl.glDisable(bgl.GL_BLEND)
+        bgl.glDisable(bgl.GL_LINE_SMOOTH)
+
+def draw_custom_element(shader, camera_position, camera_rotation):
+    # Calculate the position and orientation of the GUI element relative to the camera
+    element_position = Vector((0.0, 0.0, -1.0))  # Relative to the camera
+    element_position.rotate(camera_rotation)
+    element_position += camera_position
+    element_rotation = camera_rotation
+
+    # Set up the text drawing context
+    font_id = 0
+    dpi = 72.0
+    blf.size(font_id, 36, dpi)
+
+    # Draw the text label at the calculated position and orientation
+    label = "Custom Element"
+    shader.bind()
+    shader.uniform_float("color", (1.0, 1.0, 1.0, 1.0))
+    gpu.matrix.push()
+    gpu.matrix.translate(element_position)
+    gpu.matrix.rotate(element_rotation)
+    gpu.text_draw(label, font_id)
+    gpu.matrix.pop()
+
+def register():
+    bpy.utils.register_class(CustomOpenGLPanel)
+
+def unregister():
+    bpy.utils.unregister_class(CustomOpenGLPanel)
+
+if __name__ == "__main__":
+    register()
