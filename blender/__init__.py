@@ -44,6 +44,7 @@ class HighlightObjectOperator(bpy.types.Operator):
     styles = ['style_1','style_2','style_3','style_4']
     textures = ['texture_1','texture_2','texture_3','texture_4']
     
+    '''
     try:
         cursor = bpy.data.objects['Cursor'] 
         bar = bpy.data.objects['Bar']  
@@ -57,52 +58,93 @@ class HighlightObjectOperator(bpy.types.Operator):
             texture = bpy.data.objects[texture_name]   
             
     except:
-        bpy.ops.mesh.primitive_cylinder_add(radius=0.001, depth=10, enter_editmode=False, align='WORLD', location=(0, 0, 0), scale=(1, 1, 1))
-        bpy.context.active_object.name = 'Cursor'
-        cursor = bpy.data.objects['Cursor']       
-        bpy.context.scene.cursor.location = (0.0, 0.0, 5)
-        bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
-        #cursor.hide_viewport = True
+    '''
+    bpy.ops.mesh.primitive_cylinder_add(radius=0.001, depth=10, enter_editmode=False, align='WORLD', location=(0, 0, 0), scale=(1, 1, 1))
+    bpy.context.active_object.name = 'Cursor'
+    cursor = bpy.data.objects['Cursor']       
+    bpy.context.scene.cursor.location = (0.0, 0.0, 5)
+    bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
+    
+    bpy.ops.mesh.primitive_uv_sphere_add(radius=0.1, enter_editmode=False, align='WORLD', location=(0, 0, 0), scale=(1, 1, 1))
+    bpy.context.active_object.name = 'CursorTip'
+    cursor_tip = bpy.data.objects['CursorTip'] 
+    bpy.context.scene.cursor.location = (0.0, 0.0, 5)
+    bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
+    bpy.ops.object.parent = bpy.data.objects["Cursor"]
+    #cursor.hide_viewport = True
+    
+    bpy.ops.mesh.primitive_cylinder_add(radius=bar_size/5.0, depth=bar_size, enter_editmode=False, align='WORLD', location=(0, 0, 0), rotation=(0, math.pi/2, 0),  scale=(1, 1, 1))
+    bpy.context.active_object.name = 'Bar'
+    bar = bpy.data.objects['Bar']
+    
+    bpy.context.scene.cursor.location = (-bar_size/2.0, 0.0, 0.0)
+    bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
+    bpy.ops.mesh.primitive_cylinder_add(radius=bar_size/10.0, depth=bar_size, enter_editmode=False, align='WORLD', location=(0, 0, 0), rotation=(0, math.pi/2, 0),  scale=(1, 1, 1))
+    bpy.context.active_object.name = 'Bar_bg'
+    bar_bg = bpy.data.objects['Bar_bg']
+    bpy.context.scene.cursor.location = (-bar_size/2.0, 0.0, 0.0)
+    bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
         
-        bpy.ops.mesh.primitive_cylinder_add(radius=bar_size/5.0, depth=bar_size, enter_editmode=False, align='WORLD', location=(0, 0, 0), rotation=(0, math.pi/2, 0),  scale=(1, 1, 1))
-        bpy.context.active_object.name = 'Bar'
-        bar = bpy.data.objects['Bar']
+    #bpy.context.scene.cursor.location = (0.0, 0.0, 0.0)
+    #bar_bg.location = Vector((0.0,0.0,2.0))
+    #bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
+    #bar_bg.parent = bpy.data.objects["Bar"]
+    
+    bpy.ops.mesh.primitive_plane_add(size=panel_size*2, enter_editmode=False, align='WORLD', location=(0, 0, 0), rotation=(0, 0, 0), scale=(1, 1, 1))
+    bpy.context.active_object.name = 'Back'
+    back = bpy.data.objects['Back']   
+    back.scale[0] = 0.5
+    font_curve = bpy.data.curves.new(type="FONT", name="Font Curve")
+    font_curve.body = "Return\n back"
+    font_obj = bpy.data.objects.new(name="Back Text", object_data=font_curve)
+    bpy.context.scene.collection.objects.link(font_obj)
+    font_obj.parent = bpy.data.objects["Back"]
+    font_obj.location = (0.0, 0.195, 0.005)
+    font_obj.rotation_euler = (0.0, -math.pi, math.pi/2.0)
+    font_obj.scale = (0.15, 0.15, 0.15)
+    font_obj.active_material = bpy.data.materials['selected']
         
-        bpy.context.scene.cursor.location = (-bar_size/2.0, 0.0, 0.0)
-        bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
-        bpy.ops.mesh.primitive_cylinder_add(radius=bar_size/10.0, depth=bar_size, enter_editmode=False, align='WORLD', location=(0, 0, 0), rotation=(0, math.pi/2, 0),  scale=(1, 1, 1))
-        bpy.context.active_object.name = 'Bar_bg'
-        bar_bg = bpy.data.objects['Bar_bg']   
-        bpy.context.scene.cursor.location = (-bar_size/2.0, 0.0, 0.0)
-        bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
-        
-        #bpy.context.scene.cursor.location = (0.0, 0.0, 0.0)
-        #bar_bg.location = Vector((0.0,0.0,2.0))
-        #bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
-        #bar_bg.parent = bpy.data.objects["Bar"]
-        
-        bpy.ops.mesh.primitive_plane_add(size=panel_size, enter_editmode=False, align='WORLD', location=(0, 0, 0), rotation=(0, 0, 0), scale=(1, 1, 1))
-        bpy.context.active_object.name = 'Back'
-        back = bpy.data.objects['Back']   
-        
-        for i,style_name in enumerate(styles):
-            if i >0:
-                bpy.ops.mesh.primitive_plane_add(size=panel_size, enter_editmode=False, align='WORLD', location=(i*(panel_size+panel_th), 0, 0), rotation=(0, 0, 0), scale=(1, 1, 1))
-                bpy.context.active_object.name = style_name
-                bpy.context.active_object.parent = bpy.data.objects[styles[0]]
-            else:
-                bpy.ops.mesh.primitive_plane_add(size=panel_size, enter_editmode=False, align='WORLD', location=(panel_th, panels_sep/2.0, 0), rotation=(0, 0, 0), scale=(1, 1, 1))
-                bpy.context.active_object.name = style_name
-                
-        for i,texture_name in enumerate(textures):
-            if i >0:
-                bpy.ops.mesh.primitive_plane_add(size=panel_size, enter_editmode=False, align='WORLD', location=(i*(panel_size+panel_th), 0, 0), rotation=(0, 0, 0), scale=(1, 1, 1))
-                bpy.context.active_object.name = texture_name
-                bpy.context.active_object.parent = bpy.data.objects[textures[0]]
-            else:
-                bpy.ops.mesh.primitive_plane_add(size=panel_size, enter_editmode=False, align='WORLD', location=(panel_th, -panels_sep/2.0, 0), rotation=(0, 0, 0), scale=(1, 1, 1))
-                bpy.context.active_object.name = texture_name
-        
+    
+    for i,style_name in enumerate(styles):
+        if i >0:
+            bpy.ops.mesh.primitive_plane_add(size=panel_size, enter_editmode=False, align='WORLD', location=(i*(panel_size+panel_th), 0, 0), rotation=(0, 0, 0), scale=(1, 1, 1))
+            bpy.context.active_object.name = style_name
+            bpy.context.active_object.parent = bpy.data.objects[styles[0]]
+        else:
+            bpy.ops.mesh.primitive_plane_add(size=panel_size, enter_editmode=False, align='WORLD', location=(panel_th, panels_sep/2.0, 0), rotation=(0, 0, 0), scale=(1, 1, 1))
+            bpy.context.active_object.name = style_name
+    
+    font_curve = bpy.data.curves.new(type="FONT", name="Font Curve")
+    font_curve.body = "Select\n Style"
+    font_obj = bpy.data.objects.new(name="Style Text", object_data=font_curve)
+    bpy.context.scene.collection.objects.link(font_obj)
+    font_obj.parent = bpy.data.objects["style_1"]
+    font_obj.location = (panel_size*5+panel_th, 0.2, 0.0)
+    font_obj.rotation_euler = (0.0, -math.pi, math.pi/2.0)
+    font_obj.scale = (0.15, 0.15, 0.15)
+    font_obj.active_material = bpy.data.materials['selected']
+   
+    for i,texture_name in enumerate(textures):
+        if i >0:
+            bpy.ops.mesh.primitive_plane_add(size=panel_size, enter_editmode=False, align='WORLD', location=(i*(panel_size+panel_th), 0, 0), rotation=(0, 0, 0), scale=(1, 1, 1))
+            bpy.context.active_object.name = texture_name
+            bpy.context.active_object.parent = bpy.data.objects[textures[0]]
+        else:
+            bpy.ops.mesh.primitive_plane_add(size=panel_size, enter_editmode=False, align='WORLD', location=(panel_th, -panels_sep/2.0, 0), rotation=(0, 0, 0), scale=(1, 1, 1))
+            bpy.context.active_object.name = texture_name
+    
+    font_curve = bpy.data.curves.new(type="FONT", name="Font Curve")
+    font_curve.body = "  Select\n Texture"
+    font_obj = bpy.data.objects.new(name="Texture Text", object_data=font_curve)
+    bpy.context.scene.collection.objects.link(font_obj)
+    font_obj.parent = bpy.data.objects["texture_1"]
+    font_obj.location = (panel_size*5+panel_th, 0.3, 0.0)
+    font_obj.rotation_euler = (0.0, -math.pi, math.pi/2.0)
+    font_obj.scale = (0.15, 0.15, 0.15)
+    font_obj.active_material = bpy.data.materials['selected']        
+    
+    # except ends here
+    
     bar.scale = (0.0, 0.0, 0.0)
 
 
@@ -129,7 +171,7 @@ class HighlightObjectOperator(bpy.types.Operator):
         self.cursor.location = context.scene.camera.location 
         
         loc, rot, _= camera.matrix_world.decompose()
-        offset = Vector((-self.bar_size/2.0, 0, -self.bar_ditance))  # Change this to adjust the distance from the camera
+        offset = Vector((-self.bar_size/2.0, -2.0, -self.bar_ditance))  # Change this to adjust the distance from the camera
         position = loc + rot @ offset
         
         
@@ -177,7 +219,7 @@ class HighlightObjectOperator(bpy.types.Operator):
         
         new_selected_obj = ''
         for obj_idx, obj in enumerate(context.scene.objects):
-            if obj.type == "MESH" and (not obj.name in ['Cursor','Bar','Bar_bg']):
+            if obj.type == "MESH" and (not obj.name in ['Cursor','Bar','Bar_bg','CursorTip']):
                 bm2 = bmesh.new()
                 bm2.from_mesh(obj.data)
                 bm2.transform(obj.matrix_world) 
@@ -206,7 +248,7 @@ class HighlightObjectOperator(bpy.types.Operator):
                     scene.selectionState = 3
                 elif scene.selectionState == 0:
                     scene.selectionState = 1
-                elif scene.selectionState == 2 and scene.my_properties.selectedObject == 'Back':
+                elif scene.selectionState == 2 and scene.my_properties.selectedObject in ['Back','Back Text']:
                     scene.selectionState = 3
                 
                 scene.elapsedTime = 0
