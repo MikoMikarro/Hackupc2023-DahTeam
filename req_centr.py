@@ -13,7 +13,7 @@ class RestBai:
     def response(self, img64, model_id = "re_features_v4"):
         #Transform the image from base64 to URL
         image_url, self.im_width, self.im_height = save_image_to_gcs(img64)
-        # image_url = "https://demo.restb.ai/images/demo/demo-1.jpg"
+        #image_url = "https://demo.restb.ai/images/demo/demo-1.jpg"
 
         # create a dictionary with the request parameters
         payload = {
@@ -38,16 +38,15 @@ class RestBai:
             # print(label["label"])
             # {'detections': [{'center_point': {'x': 0.875, 'y': 0.8984375}, 'details': [{'label': 'dark'}], 'label': 'hardwood_floor'}, {'center_point': {'x': 0.390625, 'y': 0.984375}, 'details': [{'label': 'dark'}], 'label': 'hardwood_floor'}, {'center_point': {'x': 0.546875, 'y': 0.248046875}, 'details': [], 'label': 'coffered_ceiling'}, {'center_point': {'x': 0.625, 'y': 0.1953125}, 'details': [], 'label': 'beamed_ceiling'}, {'center_point': {'x': 0.1484375, 'y': 0.3984375}, 'details': [], 'label': 'built_in_shelves'}, {'center_point': {'x': 0.29851973684210525, 'y': 0.37253289473684215},
             center = label['center_point']
-            self.classes[label["label"]] = [label['center_point'].get('x')*self.im_width, label['center_point'].get('y')*self.im_height]
-
-        #self._filter_classes()
+            coordinates = [center.get('x') * self.im_width, center.get('y') * self.im_height]
+            if label["label"] in self.classes:
+                self.classes[label["label"]].append(coordinates)
+            else:
+                self.classes[label["label"]] = [coordinates]
         return self.classes
         
-
     def _filter_classes(self, ):
         pass
-        
-
 
 # Define API key
 api_key = "e311a67a878470f221c88835a02a58702f80773dd4d523e308822e94d01a39a0"
