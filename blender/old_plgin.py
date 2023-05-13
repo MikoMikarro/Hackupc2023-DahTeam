@@ -44,7 +44,7 @@ class HighlightObjectOperator(bpy.types.Operator):
     styles = ['style_1','style_2','style_3','style_4']
     textures = ['texture_1','texture_2','texture_3','texture_4']
     
-    '''
+    """
     try:
         cursor = bpy.data.objects['Cursor'] 
         bar = bpy.data.objects['Bar']  
@@ -58,7 +58,7 @@ class HighlightObjectOperator(bpy.types.Operator):
             texture = bpy.data.objects[texture_name]   
             
     except:
-    '''
+    """
     bpy.ops.mesh.primitive_cylinder_add(radius=0.001, depth=10, enter_editmode=False, align='WORLD', location=(0, 0, 0), scale=(1, 1, 1))
     bpy.context.active_object.name = 'Cursor'
     cursor = bpy.data.objects['Cursor']       
@@ -93,7 +93,7 @@ class HighlightObjectOperator(bpy.types.Operator):
     bpy.ops.mesh.primitive_plane_add(size=panel_size*2, enter_editmode=False, align='WORLD', location=(0, 0, 0), rotation=(0, 0, 0), scale=(1, 1, 1))
     bpy.context.active_object.name = 'Back'
     back = bpy.data.objects['Back']   
-    back.scale[0] = 0.5
+    back.scale[0] = 100
     font_curve = bpy.data.curves.new(type="FONT", name="Font Curve")
     font_curve.body = "Return\n back"
     font_obj = bpy.data.objects.new(name="Back Text", object_data=font_curve)
