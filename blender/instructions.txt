@@ -1,0 +1,13 @@
+    Open Blender and go to the Scripting workspace by selecting it from the top header.
+
+    In the Text Editor, create a new text file by clicking on the "New" button or press "Shift + Ctrl + N" shortcut.
+
+    Copy and paste the code for the custom OpenGL panel in the text file.
+
+		Open the file
+
+		Press run button
+
+    The custom panel will now be available in the "Custom Add-On" category of the sidebar's "View" tab in the 3D Viewport.
+
+    Click on the "Custom OpenGL Panel" button to open the panel and view the custom GUI element.
