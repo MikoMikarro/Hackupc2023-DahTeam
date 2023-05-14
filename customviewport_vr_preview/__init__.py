@@ -24,7 +24,7 @@ if "bpy" in locals():
     importlib.reload(properties)
 else:
     from . import action_map, gui, operators, properties
-    from . operators import execute_M
+    from . operators import execute_M, AssetLoader
 
 import bpy
 import gpu
@@ -46,6 +46,10 @@ class CustomOpenGLPanel(bpy.types.Panel):
         layout = self.layout
         row = layout.column()
         row.operator("view3d.highlight_object", text="Highlight Object")
+        row = layout.column()
+        row.operator("asset.load_assets", text="Load Assets & create base scene")
+        row = layout.column()
+        row.operator( "view3d.dream_bitch", text="dream ma boi")
 
 ''' selectionState
     0- wainting furniture selection
@@ -53,7 +57,6 @@ class CustomOpenGLPanel(bpy.types.Panel):
     2- waiting change selection
     3- change done, bring down pannels
 '''
-
 
 class HighlightObjectOperator(bpy.types.Operator):
     """Operator to highlight the object in the center of the camera"""
@@ -95,10 +98,48 @@ class HighlightObjectOperator(bpy.types.Operator):
         wm.event_timer_remove(self._timer)
         return {'CANCELLED'}
 
+
+
+class ExecuteDreamingOperator(bpy.types.Operator):
+    """Operator to highlight the object in the center of the camera"""
+    bl_idname = "view3d.dream_bitch"
+    bl_label = "Highlight Object"
+    
+    _timer = None
+
+    #bpy.ops.object.duplicate()
+    '''   
+    # Create a new material for the object
+    mat = bpy.data.materials.new(name="Transparent Material")
+    mat.use_nodes = True
+    mat.node_tree.nodes["Principled BSDF"].inputs["Alpha"].default_value = 0.5
+    
+    if bar_bg.data.materials:
+        bar_bg.data.materials[0] = mat
+    else: 
+        bar_bg.data.materials.append(mat)
+    bar_bg.active_material = bpy.data.materials['Transparent Material']
+    '''
+
+    def execute(self, context):
+        bpy.ops.object.editmode_toggle()
+        bpy.ops.mesh.select_all(action='SELECT')
+        bpy.ops.shade.dream_texture_project()
+        bpy.ops.object.editmode_toggle()
+        
+        return {'FINISHED'}
+
+
 class MySceneProperties(bpy.types.PropertyGroup):
     elapsedTime: bpy.props.FloatProperty(name="elapsedTime", default=0.0)
-    selectedObject: bpy.props.StringProperty(name="selectedobject", default='')
+    selectedObject: bpy.props.StringProperty(name="selectedObject", default='')
+    selectedMesh: bpy.props.StringProperty(name="selectedMesh", default='')
     selectionState: bpy.props.IntProperty(name="selectionState", default=3)
+    selectedDull: bpy.props.StringProperty(name="selectedDull", default='')
+    currentSceneHDRI: bpy.props.IntProperty(name="currentSceneHDRI", default=0)
+    currentSceneChanges: bpy.props.IntProperty(name="currentSceneChanges", default=0)
+    currentSceneIsDepth: bpy.props.IntProperty(name="currentSceneIsDepth", default=0)
+    currentFalseTexture: bpy.props.IntProperty(name="currentFalseTexture", default=1)
 
 def register():
     if not bpy.app.build_options.xr_openxr:
@@ -111,14 +152,21 @@ def register():
     properties.register()
 
     bpy.utils.register_class(MySceneProperties)
+    bpy.utils.register_class(AssetLoader)
     bpy.utils.register_class(CustomOpenGLPanel)
+    bpy.utils.register_class(ExecuteDreamingOperator)
 
     bpy.utils.register_class(HighlightObjectOperator)
 
     bpy.types.Scene.elapsedTime = bpy.props.FloatProperty(name="elapsedTime", default=0.0)
-    bpy.types.Scene.selectedObject =  bpy.props.StringProperty(name="selectedobject", default='')
+    bpy.types.Scene.selectedObject =  bpy.props.StringProperty(name="selectedObject", default='')
+    bpy.types.Scene.selectedMesh = bpy.props.StringProperty(name="selectedMesh", default='')
     bpy.types.Scene.selectionState = bpy.props.IntProperty(name="selectionState", default=3)
-
+    bpy.types.Scene.selectedDull = bpy.props.StringProperty(name="selectedDull", default='')
+    bpy.types.Scene.currentSceneHDRI = bpy.props.IntProperty(name="currentSceneHDRI", default=1)
+    bpy.types.Scene.currentSceneChanges = bpy.props.IntProperty(name="currentSceneChanges", default=0)
+    bpy.types.Scene.currentSceneIsDepth = bpy.props.IntProperty(name="currentSceneIsDepth", default=0)
+    bpy.types.Scene.currentFalseTexture = bpy.props.IntProperty(name="currentFalseTexture", default=1)
 
 def unregister():
     
@@ -134,9 +182,14 @@ def unregister():
     bpy.utils.unregister_class(CustomOpenGLPanel)
     bpy.utils.unregister_class(HighlightObjectOperator)
     bpy.utils.unregister_class(MySceneProperties)
+    bpy.utils.unregister_class(AssetLoader)
+    bpy.utils.unregister_class(ExecuteDreamingOperator)
 
     del bpy.types.Scene.elapsedTime
     del bpy.types.Scene.selectedObject
     del bpy.types.Scene.selectionState
+    del bpy.types.Scene.currentSceneHDRI
+    del bpy.types.Scene.currentSceneIsDepth
+    del bpy.types.Scene.currentFalseTexture
 
         

@@ -13,7 +13,8 @@ from mathutils import Vector, Matrix
 from gpu_extras.batch import batch_for_shader
 from mathutils.bvhtree import BVHTree
 import time
-import math
+import math, os, glob
+from math import pi
 from bpy.app.translations import pgettext_data as data_
 from bpy.types import (
     Gizmo,
@@ -23,8 +24,7 @@ from bpy.types import (
 import math
 from math import radians
 from mathutils import Euler, Matrix, Quaternion, Vector
-
-
+from . scene_loader import loadPickle
 ### Landmarks.
 class VIEW3D_OT_vr_landmark_add(Operator):
     bl_idname = "view3d.vr_landmark_add"
@@ -42,7 +42,6 @@ class VIEW3D_OT_vr_landmark_add(Operator):
         scene.vr_landmarks_selected = len(landmarks) - 1
 
         return {'FINISHED'}
-
 
 class VIEW3D_OT_vr_landmark_from_camera(Operator):
     bl_idname = "view3d.vr_landmark_from_camera"
@@ -547,20 +546,30 @@ def unregister():
 def execute_M():
 
     bar_size = 0.5
-    bar_ditance = 5.0
+    bar_ditance = 1.5
     panel_size = 0.25
     panel_th = 0.1
-    panels_distance = 5.0
-    panels_sep = 3.0
+    panels_distance = 2
+    panels_sep = 2.0
+    text_size = 0.2
     
     styles = ['style_1','style_2','style_3','style_4']
     textures = ['texture_1','texture_2','texture_3','texture_4']
     
+    styles_list = ['style_1','style_2','style_3','style_4']
+    textures_list = ['texture_1','texture_2','texture_3','texture_4']
+    
+
     try:
         cursor = bpy.data.objects['Cursor'] 
         bar = bpy.data.objects['Bar']  
         bar_bg = bpy.data.objects['Bar_bg']  
         back = bpy.data.objects['Back']  
+        prev = bpy.data.objects['Prev']  
+        next = bpy.data.objects['Next'] 
+        style = bpy.data.objects['Style']  
+        texture = bpy.data.objects['Texture']
+        hds = bpy.data.objects['HDS'] 
         
         for style_name in styles:
             style = bpy.data.objects[style_name] 
@@ -569,79 +578,200 @@ def execute_M():
             texture = bpy.data.objects[texture_name]   
             
     except:
-        bpy.ops.mesh.primitive_cylinder_add(radius=0.001, depth=10, enter_editmode=False, align='WORLD', location=(0, 0, 0), scale=(1, 1, 1))
+        bpy.ops.mesh.primitive_cylinder_add(radius=0.0005, depth=10, enter_editmode=False, align='WORLD', location=(0, 0, 0), scale=(1, 1, 1))
         bpy.context.active_object.name = 'Cursor'
         cursor = bpy.data.objects['Cursor']       
         bpy.context.scene.cursor.location = (0.0, 0.0, 5)
         bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
         #cursor.hide_viewport = True
         
-        bpy.ops.mesh.primitive_cylinder_add(radius=bar_size/5.0, depth=bar_size, enter_editmode=False, align='WORLD', location=(0, 0, 0), rotation=(0, math.pi/2, 0),  scale=(1, 1, 1))
+        bpy.ops.mesh.primitive_uv_sphere_add(radius=bar_size/5.0, enter_editmode=False, align='WORLD', location=(0, 0, 0), rotation=(0, math.pi/2, 0),  scale=(1, 1, 1))
         bpy.context.active_object.name = 'Bar'
         bar = bpy.data.objects['Bar']
         
-        bpy.context.scene.cursor.location = (-bar_size/2.0, 0.0, 0.0)
-        bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
-        bpy.ops.mesh.primitive_cylinder_add(radius=bar_size/10.0, depth=bar_size, enter_editmode=False, align='WORLD', location=(0, 0, 0), rotation=(0, math.pi/2, 0),  scale=(1, 1, 1))
+        #bpy.context.scene.cursor.location = (-bar_size/2.0, 0.0, 0.0)
+        #bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
+        bpy.ops.mesh.primitive_uv_sphere_add(radius=bar_size/10.0, enter_editmode=False, align='WORLD', location=(0, 0, 0), rotation=(0, math.pi/2, 0),  scale=(1, 1, 1))
         bpy.context.active_object.name = 'Bar_bg'
         bar_bg = bpy.data.objects['Bar_bg']   
-        bpy.context.scene.cursor.location = (-bar_size/2.0, 0.0, 0.0)
-        bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
+        #bpy.context.scene.cursor.location = (-bar_size/2.0, 0.0, 0.0)
+        #bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
         
         #bpy.context.scene.cursor.location = (0.0, 0.0, 0.0)
         #bar_bg.location = Vector((0.0,0.0,2.0))
         #bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
         #bar_bg.parent = bpy.data.objects["Bar"]
         
-        bpy.ops.mesh.primitive_plane_add(size=panel_size*2, enter_editmode=False, align='WORLD', location=(0, 0, 0), rotation=(0, 0, 0), scale=(1, 1, 1))
+        bpy.ops.mesh.primitive_plane_add(size=panel_size*2.5, enter_editmode=False, align='WORLD', location=(-panel_size*2, 0.3, 0), rotation=(0, -math.pi, math.pi/2.0), scale=(1, 1, 1))
         bpy.context.active_object.name = 'Back'
         bpy.context.object.scale[0] = 0.5
-        back = bpy.data.objects['Back']   
+        back = bpy.data.objects['Back']
+
+        bpy.ops.mesh.primitive_plane_add(size=panel_size*2.5, enter_editmode=False, align='WORLD', location=(0.0, 0.0, 0), rotation=(0, 0, 0), scale=(1, 1, 1))
+        bpy.context.active_object.name = 'HDS'
+        bpy.context.object.scale[0] = 0.5
+        hda = bpy.data.objects['HDS']
+
+        bpy.ops.mesh.primitive_plane_add(size=panel_size*2.5, enter_editmode=False, align='WORLD', location=(0, panel_size*2.5, 0), rotation=(0, 0, 0), scale=(1, 1, 1))
+        bpy.context.active_object.name = 'Prev'
+        bpy.context.object.scale[0] = 0.6
+        prev = bpy.data.objects['Prev'] 
+
+        bpy.ops.mesh.primitive_plane_add(size=panel_size*2.5, enter_editmode=False, align='WORLD', location=(0, -panel_size*2.5, 0), rotation=(0, 0, 0), scale=(1, 1, 1))
+        bpy.context.active_object.name = 'Next'
+        bpy.context.object.scale[0] = 0.6
+        next = bpy.data.objects['Next']    
+
+        font_curve = bpy.data.curves.new(type="FONT", name="Font Curve")
+        font_curve.body = "Prev"
+        font_obj = bpy.data.objects.new(name="Prev Text", object_data=font_curve)
+        bpy.context.scene.collection.objects.link(font_obj)
+        font_obj.parent = bpy.data.objects["Prev"]
+        font_obj.location = (0.05,-0.22, 0.01)
+        font_obj.rotation_euler = (0.0, 0.0, math.pi/2.0)
+        font_obj.scale = (text_size, text_size, text_size)
+        font_obj.active_material = bpy.data.materials['not_selected']  
+
+        font_curve = bpy.data.curves.new(type="FONT", name="Font Curve")
+        font_curve.body = "Next"
+        font_obj = bpy.data.objects.new(name="Next Text", object_data=font_curve)
+        bpy.context.scene.collection.objects.link(font_obj)
+        font_obj.parent = bpy.data.objects["Next"]
+        font_obj.location = (0.05, -0.16, 0.01)
+        font_obj.rotation_euler = (0.0, 0.0, math.pi/2.0)
+        font_obj.scale = (text_size, text_size, text_size)
+        font_obj.active_material = bpy.data.materials['not_selected']  
+
+        font_curve = bpy.data.curves.new(type="FONT", name="Font Curve")
+        font_curve.body = "HDS"
+        font_obj = bpy.data.objects.new(name="HDS Text", object_data=font_curve)
+        bpy.context.scene.collection.objects.link(font_obj)
+        font_obj.parent = bpy.data.objects["HDS"]
+        font_obj.location = (0.05, -0.16, 0.01)
+        font_obj.rotation_euler = (0.0, 0.0, math.pi/2.0)
+        font_obj.scale = (text_size, text_size, text_size)
+        font_obj.active_material = bpy.data.materials['not_selected'] 
 
         font_curve = bpy.data.curves.new(type="FONT", name="Font Curve")
         font_curve.body = "Return\n back"
         font_obj = bpy.data.objects.new(name="Back Text", object_data=font_curve)
         bpy.context.scene.collection.objects.link(font_obj)
         font_obj.parent = bpy.data.objects["Back"]
-        font_obj.location = (0.0, 0.195, 0.005)
+        font_obj.location = (-0.05, 0.25, -0.005)
         font_obj.rotation_euler = (0.0, -math.pi, math.pi/2.0)
-        font_obj.scale = (0.15, 0.15, 0.15)
-        font_obj.active_material = bpy.data.materials['selected']  
+        font_obj.scale = (text_size, text_size, text_size)
+        font_obj.active_material = bpy.data.materials['not_selected']  
     
         for i,style_name in enumerate(styles):
             if i >0:
                 bpy.ops.mesh.primitive_plane_add(size=panel_size, enter_editmode=False, align='WORLD', location=(i*(panel_size+panel_th), 0, 0), rotation=(0, 0, 0), scale=(1, 1, 1))
                 bpy.context.active_object.name = style_name
                 bpy.context.active_object.parent = bpy.data.objects[styles[0]]
+
+                bpy.ops.mesh.primitive_plane_add(size=panel_size, enter_editmode=False, align='WORLD', location=(i*(panel_size+panel_th), panel_size*2, 0), rotation=(0, 0, 0), scale=(1, 1, 1))
+                bpy.context.active_object.name = style_name+'_label'
+                bpy.context.active_object.parent = bpy.data.objects[styles[0]]
+
+                bpy.context.object.scale[1] = 2.0
+                font_curve = bpy.data.curves.new(type="FONT", name="Font Curve")
+                font_curve.body = styles_list[i]
+                font_obj = bpy.data.objects.new(name=styles_list[i], object_data=font_curve)
+                bpy.context.scene.collection.objects.link(font_obj)
+                font_obj.parent = bpy.data.objects["style_1"]
+                font_obj.location = (i*(panel_size+panel_th), panel_size*2+panel_th, 0)
+                font_obj.rotation_euler = (0.0, -math.pi, math.pi/2.0)
+                font_obj.scale = (text_size*0.5, text_size*0.5, text_size*0.5)
+                font_obj.active_material = bpy.data.materials['selected'] 
+
             else:
                 bpy.ops.mesh.primitive_plane_add(size=panel_size, enter_editmode=False, align='WORLD', location=(panel_th, panels_sep/2.0, 0), rotation=(0, 0, 0), scale=(1, 1, 1))
                 bpy.context.active_object.name = style_name
+
+                bpy.ops.mesh.primitive_plane_add(size=panel_size, enter_editmode=False, align='WORLD', location=(0.0, panel_size*2, 0), rotation=(0, 0, 0), scale=(1, 1, 1))
+                bpy.context.active_object.name = style_name+'_label'
+                bpy.context.active_object.parent = bpy.data.objects[styles[0]]
+                bpy.context.object.scale[1] = 2.0
+                font_curve = bpy.data.curves.new(type="FONT", name="Font Curve")
+                font_curve.body = styles_list[i]
+                font_obj = bpy.data.objects.new(name=styles_list[i], object_data=font_curve)
+                bpy.context.scene.collection.objects.link(font_obj)
+                font_obj.parent = bpy.data.objects["style_1"]
+                font_obj.location = (0, panel_size*2+panel_th, 0)
+                font_obj.rotation_euler = (0.0, -math.pi, math.pi/2.0)
+                font_obj.scale = (text_size*0.5, text_size*0.5, text_size*0.5)
+                font_obj.active_material = bpy.data.materials['selected'] 
+
         font_curve = bpy.data.curves.new(type="FONT", name="Font Curve")
         font_curve.body = "Select\n Style"
         font_obj = bpy.data.objects.new(name="Style Text", object_data=font_curve)
         bpy.context.scene.collection.objects.link(font_obj)
         font_obj.parent = bpy.data.objects["style_1"]
-        font_obj.location = (panel_size*5+panel_th, 0.2, 0.0)
+        font_obj.location = (-panel_size*2.5, 0.2, 0.0)
+        #font_obj.location = (panel_size*5+panel_th, 0.2, 0.0)
         font_obj.rotation_euler = (0.0, -math.pi, math.pi/2.0)
-        font_obj.scale = (0.15, 0.15, 0.15)
+        font_obj.scale = (text_size, text_size, text_size)
         font_obj.active_material = bpy.data.materials['selected']
+
+        bpy.ops.mesh.primitive_plane_add(size=panel_size*2.5, enter_editmode=False, align='WORLD', location=(-panel_size*2, 0.0, 0), rotation=(0, -math.pi, math.pi/2.0), scale=(1, 1, 1))
+        bpy.context.active_object.name = 'Style'
+        bpy.context.object.scale[0] = 1.2
+        style = bpy.data.objects['Style']
+        style.parent = bpy.data.objects["style_1"]
+
         for i,texture_name in enumerate(textures):
             if i >0:
                 bpy.ops.mesh.primitive_plane_add(size=panel_size, enter_editmode=False, align='WORLD', location=(i*(panel_size+panel_th), 0, 0), rotation=(0, 0, 0), scale=(1, 1, 1))
                 bpy.context.active_object.name = texture_name
                 bpy.context.active_object.parent = bpy.data.objects[textures[0]]
+
+                bpy.ops.mesh.primitive_plane_add(size=panel_size, enter_editmode=False, align='WORLD', location=(i*(panel_size+panel_th), -panel_size*2, 0), rotation=(0, 0, 0), scale=(1, 1, 1))
+                bpy.context.active_object.name = texture_name+'_label'
+                bpy.context.active_object.parent = bpy.data.objects[textures[0]]
+                bpy.context.object.scale[1] = 2.0
+                font_curve = bpy.data.curves.new(type="FONT", name="Font Curve")
+                font_curve.body = textures_list[i]
+                font_obj = bpy.data.objects.new(name=textures_list[i], object_data=font_curve)
+                bpy.context.scene.collection.objects.link(font_obj)
+                font_obj.parent = bpy.data.objects["texture_1"]
+                font_obj.location = (i*(panel_size+panel_th/2.0), -panel_size-panel_th, 0)
+                font_obj.rotation_euler = (0.0, -math.pi, math.pi/2.0)
+                font_obj.scale = (text_size*0.5, text_size*0.5, text_size*0.5)
+                font_obj.active_material = bpy.data.materials['selected'] 
+
             else:
                 bpy.ops.mesh.primitive_plane_add(size=panel_size, enter_editmode=False, align='WORLD', location=(panel_th, -panels_sep/2.0, 0), rotation=(0, 0, 0), scale=(1, 1, 1))
                 bpy.context.active_object.name = texture_name
+                
+                bpy.ops.mesh.primitive_plane_add(size=panel_size, enter_editmode=False, align='WORLD', location=(0, -panel_size*2, 0), rotation=(0, 0, 0), scale=(1, 1, 1))
+                bpy.context.active_object.name = texture_name+'_label'
+                bpy.context.active_object.parent = bpy.data.objects[textures[0]]
+                bpy.context.object.scale[1] = 2.0
+                font_curve = bpy.data.curves.new(type="FONT", name="Font Curve")
+                font_curve.body = textures_list[i]
+                font_obj = bpy.data.objects.new(name=textures_list[i], object_data=font_curve)
+                bpy.context.scene.collection.objects.link(font_obj)
+                font_obj.parent = bpy.data.objects["texture_1"]
+                font_obj.location = (0, -panel_size-panel_th/2.0, 0)
+                font_obj.rotation_euler = (0.0, -math.pi, math.pi/2.0)
+                font_obj.scale = (text_size*0.5, text_size*0.5, text_size*0.5)
+                font_obj.active_material = bpy.data.materials['selected'] 
+
         font_curve = bpy.data.curves.new(type="FONT", name="Font Curve")
         font_curve.body = "  Select\n Texture"
         font_obj = bpy.data.objects.new(name="Texture Text", object_data=font_curve)
         bpy.context.scene.collection.objects.link(font_obj)
         font_obj.parent = bpy.data.objects["texture_1"]
-        font_obj.location = (panel_size*5+panel_th, 0.3, 0.0)
+        font_obj.location = (-panel_size*2.5, 0.39, 0.0)
         font_obj.rotation_euler = (0.0, -math.pi, math.pi/2.0)
-        font_obj.scale = (0.15, 0.15, 0.15)
-        font_obj.active_material = bpy.data.materials['selected']        
+        font_obj.scale = (text_size, text_size, text_size)
+        font_obj.active_material = bpy.data.materials['selected'] 
+
+        bpy.ops.mesh.primitive_plane_add(size=panel_size*2.5, enter_editmode=False, align='WORLD', location=(-panel_size*2, 0.0, 0.0), rotation=(0, -math.pi, math.pi/2.0), scale=(1, 1, 1))
+        bpy.context.active_object.name = 'Texture'
+        bpy.context.object.scale[0] = 1.2
+        texture = bpy.data.objects['Texture']
+        texture.parent = bpy.data.objects["texture_1"]
+               
 
     bar.scale = (0.0, 0.0, 0.0)
 
@@ -660,7 +790,7 @@ def execute_M():
     #cursor.location = context.scene.camera.location 
     
     #loc, rot, _= camera.matrix_world.decompose()
-    offset = Vector((-bar_size/2.0, 0.0, -bar_ditance))  # Change this to adjust the distance from the camera
+    offset = Vector((0.0, 0.0, -bar_ditance))  # Change this to adjust the distance from the camera
     position = loc + rot @ offset
     
     bar.location = position
@@ -703,10 +833,10 @@ def execute_M():
         scene.selectionState = 2
         
     elif scene.selectionState == 3:
-        bpy.data.objects[styles[0]].location = Vector((0.0,0.0,-10))
-        bpy.data.objects[textures[0]].location = Vector((0.0,0.0,-10))
+        bpy.data.objects[styles[0]].location = Vector((0.0,0.0,-200))
+        bpy.data.objects[textures[0]].location = Vector((0.0,0.0,-200))
         scene.selectionState = 0
-        back.location = Vector((0.0,0.0,-10))
+        back.location = Vector((0.0,0.0,-200))
     
     # Create bmesh objects for the mesh data
     bm1 = bmesh.new()
@@ -716,7 +846,7 @@ def execute_M():
     
     new_selected_obj = ''
     for obj_idx, obj in enumerate(bpy.context.scene.objects):
-        if obj.type == "MESH" and (not obj.name in ['Cursor','Bar','Bar_bg']):
+        if obj.type == "MESH" and (not obj.name in ['Cursor','Bar','Bar_bg','Style','Texture']):
             bm2 = bmesh.new()
             bm2.from_mesh(obj.data)
             bm2.transform(obj.matrix_world) 
@@ -725,13 +855,26 @@ def execute_M():
             #get intersecting pairs
             inter = obj_now_BVHtree.overlap(obj_next_BVHtree)
             if inter:
-                obj.active_material = bpy.data.materials['selected']
+                if len(obj.data.materials) > 2:
+                    if obj.name == "floor_shade":
+                        pass
+                    else:
+                        obj.active_material = obj.data.materials[2]
+                else:
+                    obj.active_material = bpy.data.materials['selected']
                 print('Intersect with: ', obj)
                 new_selected_obj = obj.name
-                break
+                if obj.name != scene.selectedDull:
+                    break
                 #return (obj_idx,)
             else:
-                obj.active_material = bpy.data.materials['not_selected']
+                if len(obj.data.materials) > 2:
+                    if obj.name == "floor_shade":
+                        pass
+                    else:
+                        obj.active_material = obj.data.materials[1]
+                else:
+                    obj.active_material = bpy.data.materials['not_selected']
     
     scene.elapsedTime += 1
 
@@ -741,25 +884,275 @@ def execute_M():
             scene.elapsedTime = 0
         elif scene.elapsedTime >= max_time_to_select:
             print('Selected: ', scene.selectedObject)
-            if scene.selectionState ==2 and scene.selectedObject in textures+styles:
+            if scene.selectionState == 2 and scene.selectedObject in textures+styles:
+                if scene.currentSceneHDRI == 2:
+                    file = r'C:\Users\lopez\Desktop\Hackathon\OthersssCode\Hackupc2023-DahTeam\customviewport_vr_preview\assets\cool_texture_'+str(bpy.context.scene.currentFalseTexture)+'.jpg'
+                    scene.currentFalseTexture += 1
+                    if scene.currentFalseTexture > 3:
+                        scene.currentFalseTexture = 1
+                    nodes = bpy.data.materials["Transparent Material4_floor"].node_tree.nodes
+                    texture_node = nodes["Image Texture"]
+                    texture_node.image = getCyclesImage(file)
+                    bpy.data.objects["floor_shade"].active_material = bpy.data.materials["Transparent Material4_floor"]
+                else:
+                    if '_shade' in scene.selectedMesh:
+                        print('Mesh selected: ', scene.selectedMesh)
+                        real_name = scene.selectedMesh.split('_')[0]
+                        bpy.data.scenes["Scene"].dream_textures_project_prompt.prompt_structure_token_subject = \
+                            real_name+" "+scene.selectedObject.split('_')[0]
+                        #bpy.ops.mesh.select_all(action='DESELECT')
+                        bpy.data.objects[scene.selectedMesh].select_set(state=True)
+                        bpy.ops.object.editmode_toggle()
+                        bpy.ops.mesh.select_all(action='SELECT')
+                        bpy.ops.shade.dream_texture_project()
+                        bpy.ops.object.editmode_toggle()
+        
                 scene.selectionState = 3
-            elif scene.selectionState == 0:
+                scene.elapsedTime = 0
+                scene.selectedDull = ''
+            elif scene.selectionState == 0 and not scene.selectedObject in ['Next','Prev', 'Back','Back Text','Prev Text','Next Text', 'HDS', 'HDS Text']:
                 scene.selectionState = 1
+                scene.selectedMesh=scene.selectedObject
+                scene.elapsedTime = 0
+                scene.selectedDull = ''
+            elif scene.selectionState == 0 and scene.selectedObject in ['Next','Next Text']:
+                scene.selectionState = 3
+                scene.elapsedTime = 0
+                scene.selectedDull = ''
+                scene.currentSceneHDRI += 1
+                if scene.currentSceneHDRI > 3:
+                    scene.currentSceneHDRI = 1
+                loadNewHDRI(scene.currentSceneHDRI)
+                # delete all objects containing _shade in the name
+                for obj in bpy.data.objects:
+                    if "_shade" in obj.name:
+                        bpy.data.objects.remove(obj, do_unlink=True)
+                loadPickle(scene.currentSceneHDRI)
+                
+            elif scene.selectionState == 0 and scene.selectedObject in ['Prev','Prev Text']:
+                scene.selectionState = 3
+                scene.elapsedTime = 0
+                scene.selectedDull = ''
+                scene.currentSceneHDRI -= 1
+                if scene.currentSceneHDRI < 1:
+                    scene.currentSceneHDRI = 3
+                loadNewHDRI(scene.currentSceneHDRI)
+                # delete all objects containing _shade in the name
+                for obj in bpy.data.objects:
+                    if "_shade" in obj.name:
+                        bpy.data.objects.remove(obj, do_unlink=True)
+                loadPickle(scene.currentSceneHDRI)
+
+            elif scene.selectionState == 0 and scene.selectedObject in ['HDS','HDS Text']:
+                scene.selectionState = 3
+                scene.elapsedTime = 0
+                scene.selectedDull = ''
+                if scene.currentSceneIsDepth:
+                    scene.currentSceneIsDepth = False
+                else:
+                    scene.currentSceneIsDepth = True
+                loadNewHDRI(scene.currentSceneHDRI)
             elif scene.selectionState == 2 and scene.selectedObject in ['Back','Back Text']:
                 scene.selectionState = 3
-            
-            scene.elapsedTime = 0
+                scene.elapsedTime = 0
+                scene.selectedDull = ''
+            else:
+                scene.elapsedTime = max_time_to_select
+                scene.selectedDull = scene.selectedObject
+
                 
     else:
         scene.elapsedTime = 0
         
     percentage = min(1.0, scene.elapsedTime / max_time_to_select)
-    print(percentage)
+    #print(percentage)
     if percentage > 0:
-        bar.scale = (1.0, 1.0, percentage)
+        bar.scale = (percentage, percentage, percentage)
         
     else:
         bar.scale = (0.0, 0.0, 0.0)
 
-    print(scene.selectionState)
+    #print(scene.selectionState)
     return {'FINISHED'}
+
+def getGroundHdriNodeGroup():
+    if "GroundHdri" not in bpy.data.node_groups:
+        blendfile = r"C:\Users\lopez\Desktop\LilySurfaceScraper\database.blend"
+        section   = "\\NodeTree\\"
+        object    = "GroundHdri"
+        filepath  = blendfile + section + object
+        directory = blendfile + section
+        filename  = object
+        bpy.ops.wm.append(
+            filepath=filepath,
+            filename=filename,
+            directory=directory)
+    return bpy.data.node_groups["GroundHdri"]
+
+def guessColorSpaceFromExtension(img):
+    """Guess the most appropriate color space from filename extension"""
+    img = img.lower()
+    if img.endswith(".jpg") or img.endswith(".jpeg") or img.endswith(".png"):
+        return {
+            "name": "sRGB",
+            "old_name": "COLOR", # mostly for backward compatibility
+        }
+    else:
+        return {
+            "name": "Linear",
+            "old_name": "NONE",
+        }
+
+def getCyclesImage(imgpath):
+    """Avoid reloading an image that has already been loaded"""
+    for img in bpy.data.images:
+        if os.path.abspath(img.filepath) == os.path.abspath(imgpath):
+            return img
+    return bpy.data.images.load(imgpath)
+
+class PrincipledWorldWrapper:
+    """This is a wrapper similar in use to PrincipledBSDFWrapper (located in
+    bpy_extras.node_shader_utils) but for use with worlds. This is required to
+    avoid relying on node names, which depend on Blender's UI language settings
+    (see issue #7) """
+
+    def __init__(self, world):
+        self.node_background = None
+        self.node_out = None
+        for n in world.node_tree.nodes:
+            if self.node_background is None and n.type == "BACKGROUND":
+                self.node_background = n
+            elif self.node_out is None and n.type == "OUTPUT_WORLD":
+                self.node_out = n
+
+
+class AssetLoader(Operator):
+    bl_idname = "asset.load_assets"
+    bl_label = "Load Assets"
+    bl_description = "This is the hello world operator"
+
+    
+    def execute(self, context):
+        bpy.data.scenes["Scene"].dream_textures_project_prompt.prompt_structure_token_subject = "sofa, rojo"
+        bpy.context.scene.dream_textures_project_prompt.use_size = True
+        bpy.context.scene.dream_textures_project_prompt.height = 512
+        bpy.context.scene.dream_textures_project_prompt.width = 512
+        bpy.context.scene.dream_textures_project_prompt.model = 'models--stabilityai--stable-diffusion-2-depth'
+        bpy.context.scene.dream_textures_project_prompt.optimizations_sequential_cpu_offload = True
+        bpy.context.scene.dream_textures_project_prompt.optimizations_batch_size = 3
+        bpy.context.scene.dream_textures_project_prompt.scheduler = 'Euler Ancestral Discrete'
+        bpy.context.scene.currentFalseTexture = 1
+        loadHDRIs(context)
+        loadPickle(context.scene.currentSceneHDRI)
+        return {'FINISHED'}
+
+def loadNewHDRI(id):
+    if bpy.context.scene.currentSceneIsDepth:
+        new_img = bpy.data.images["hdri_"+str(id)+"_depth.jpg"]
+    else:
+        new_img = bpy.data.images["hdri_"+str(id)+".jpg"]
+    world = bpy.context.scene.world
+    nodes = world.node_tree.nodes
+    environment_texture_node = nodes["Environment Texture"]
+    environment_texture_node.image = new_img
+
+def loadHDRIs(context):
+
+    # INIT VARIABLES DEL IZAN
+    context.scene.elapsedTime = 0
+    context.scene.selectedObject = ''
+    context.scene.selectionState = 3
+    context.scene.selectedDull = ''
+    # get the files of a folder
+
+
+    txtfiles = []
+    for file in glob.glob(r"C:\Users\lopez\Desktop\Hackathon\OthersssCode\Hackupc2023-DahTeam\customviewport_vr_preview\assets\*.jpg"):
+        txtfiles.append(file)
+        file_name = file.split("\\")[-1]
+        getCyclesImage(file)
+        #bpy.ops.image.open(filepath=file, directory="C:\\Users\\lopez\\Desktop\\Hackathon\\blender_final_plugin\\assets\\", files=[{"name":file_name, "name":file_name}], relative_path=True, show_multiview=False)
+
+    file = txtfiles[3]
+    #for i in list(context.scene.world.node_tree.nodes):
+    #    print(i.name)
+    #    context.scene.world.node_tree.nodes.remove(i)
+    PrincipledWorldWrapper
+    world = context.scene.world
+    nodes = world.node_tree.nodes
+    links = world.node_tree.links
+    principled_world = PrincipledWorldWrapper(world)
+    background = principled_world.node_background
+    texture_node = nodes.new(type="ShaderNodeTexEnvironment")
+    texture_coordinate_node = nodes.new(type="ShaderNodeTexCoord")
+    texture_node.image = getCyclesImage(file)
+    color_space = guessColorSpaceFromExtension(file)
+    texture_node.image.colorspace_settings.name = color_space["name"]
+    if hasattr(texture_node, "color_space"):
+        texture_node.color_space = color_space["old_name"]
+    mapping_node = nodes.new(type="ShaderNodeMapping")
+    links.new(texture_node.outputs["Color"], background.inputs["Color"])
+    links.new(texture_coordinate_node.outputs["Generated"], mapping_node.inputs["Vector"])
+    mapping_node.inputs[1].default_value = (0, 0, 0.0)
+
+    links.new(mapping_node.outputs[0], texture_node.inputs[0])
+
+
+    camera_data = bpy.data.cameras.new(name='Camera2')
+    context.scene.camera = bpy.data.objects.new('Camera2', camera_data)
+
+    bpy.context.scene.render.resolution_x = 1080
+    bpy.context.scene.render.resolution_y = 1080
+    # Set the output format
+    bpy.context.scene.render.image_settings.file_format = "PNG"
+    bpy.context.space_data.shading.type = 'RENDERED'
+    context.scene.camera.data.lens_unit = 'FOV'
+    context.scene.camera.data.angle = 100*pi/180
+    context.scene.camera.rotation_euler[0] = 1.5708
+    context.scene.camera.rotation_euler[1] = 0
+    context.scene.camera.rotation_euler[2] = 0
+    context.scene.camera.location[2] = 1.0
+
+    for i in range(4):
+        
+
+        # bpy.ops.mesh.primitive_plane_add(size=2, enter_editmode=False, align='WORLD', location=(0, 0, i), scale=(1, 1, 1))
+        # bpy.ops.material.new()
+        # plane = bpy.data.objects[-1]
+        # plane.data.materials.append(bpy.data.materials[-1])
+        # material = plane.active_material
+        # m_tree = material.node_tree
+        # m_nodes = m_tree.nodes
+        # m_links = m_tree.links
+        # texture_node = m_nodes.new(type="ShaderNodeTexImage")
+        # texture_coordinate_node = m_nodes.new(type="ShaderNodeTexCoord")
+        # file = r"C:\Users\lopez\Desktop\Hackathon\blender_final_plugin\assets\output"+str(i)+".png"
+        # texture_node.image = getCyclesImage(file)
+        # color_space = guessColorSpaceFromExtension(file)
+        # texture_node.image.colorspace_settings.name = color_space["name"]
+        # m_links.new(m_nodes["Material Output"].inputs[0], texture_node.outputs[0])
+        # mod = plane.modifiers.new("subsurf", 'SUBSURF')
+        # plane.modifiers[0].levels = 7
+        # plane.modifiers[0].subdivision_type = 'SIMPLE'
+        
+        # modifier = plane.modifiers.new(type='DISPLACE', name="disp"+str(i))
+        # bpy.ops.texture.new()
+        # texture = bpy.data.textures[-1]
+        # modifier.texture = texture
+        # file = r"C:\Users\lopez\Desktop\Hackathon\blender_final_plugin\assets\output"+str(i)+"_depth.png"
+        # texture.image = getCyclesImage(file)
+        
+        pass
+
+
+        
+        
+        # 
+        # context.active_object = bpy.data.objects["Plane"]
+        # context.active_object.name = "Plane"+str(i)
+        # bpy.ops.object.modifier_add(type='SUBSURF')
+        # context.object.modifiers["Subdivision"].subdivision_type = 'SIMPLE'
+        # context.object.modifiers["Subdivision"].levels = 7
+        # bpy.ops.object.modifier_apply(modifier="Subdivision")
+        # context.active_object.data.location[2] = i
+        # 
