@@ -40,7 +40,7 @@ def loadPickle(file_path):
         current_objects = []
         for outer_contour in contours:
             # Plot the simplified shape
-            simplified_contour = measure.approximate_polygon(outer_contour, tolerance=.5)
+            simplified_contour = measure.approximate_polygon(outer_contour, tolerance=2.0)
 
             # Plot the simplified shape
             #plt.plot(simplified_contour[:, 1], simplified_contour[:, 0], 'k')

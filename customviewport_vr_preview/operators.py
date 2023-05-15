@@ -775,7 +775,7 @@ def execute_M():
 
     bar.scale = (0.0, 0.0, 0.0)
 
-    max_time_to_select = 10
+    max_time_to_select = 20
     
     scene = bpy.context.scene
     
@@ -888,7 +888,7 @@ def execute_M():
                 if scene.currentSceneHDRI == 2:
                     file = r'C:\Users\lopez\Desktop\Hackathon\OthersssCode\Hackupc2023-DahTeam\customviewport_vr_preview\assets\cool_texture_'+str(bpy.context.scene.currentFalseTexture)+'.jpg'
                     scene.currentFalseTexture += 1
-                    if scene.currentFalseTexture > 3:
+                    if scene.currentFalseTexture > 4:
                         scene.currentFalseTexture = 1
                     nodes = bpy.data.materials["Transparent Material4_floor"].node_tree.nodes
                     texture_node = nodes["Image Texture"]
@@ -910,12 +910,12 @@ def execute_M():
                 scene.selectionState = 3
                 scene.elapsedTime = 0
                 scene.selectedDull = ''
-            elif scene.selectionState == 0 and not scene.selectedObject in ['Next','Prev', 'Back','Back Text','Prev Text','Next Text', 'HDS', 'HDS Text']:
+            elif scene.selectionState == 0 and (not scene.selectedObject in ['Next','Prev', 'Back','Back Text','Prev Text','Next Text', 'HDS', 'HDS Text']):
                 scene.selectionState = 1
                 scene.selectedMesh=scene.selectedObject
                 scene.elapsedTime = 0
                 scene.selectedDull = ''
-            elif scene.selectionState == 0 and scene.selectedObject in ['Next','Next Text']:
+            elif scene.selectedObject in ['Next','Next Text']:
                 scene.selectionState = 3
                 scene.elapsedTime = 0
                 scene.selectedDull = ''
@@ -929,7 +929,7 @@ def execute_M():
                         bpy.data.objects.remove(obj, do_unlink=True)
                 loadPickle(scene.currentSceneHDRI)
                 
-            elif scene.selectionState == 0 and scene.selectedObject in ['Prev','Prev Text']:
+            elif scene.selectedObject in ['Prev','Prev Text']:
                 scene.selectionState = 3
                 scene.elapsedTime = 0
                 scene.selectedDull = ''
@@ -943,7 +943,7 @@ def execute_M():
                         bpy.data.objects.remove(obj, do_unlink=True)
                 loadPickle(scene.currentSceneHDRI)
 
-            elif scene.selectionState == 0 and scene.selectedObject in ['HDS','HDS Text']:
+            elif scene.selectedObject in ['HDS','HDS Text']:
                 scene.selectionState = 3
                 scene.elapsedTime = 0
                 scene.selectedDull = ''
@@ -1032,14 +1032,15 @@ class AssetLoader(Operator):
     bl_description = "This is the hello world operator"
 
     
-    def execute(self, context):
+    def execute(
+        self, context):
         bpy.data.scenes["Scene"].dream_textures_project_prompt.prompt_structure_token_subject = "sofa, rojo"
         bpy.context.scene.dream_textures_project_prompt.use_size = True
-        bpy.context.scene.dream_textures_project_prompt.height = 512
-        bpy.context.scene.dream_textures_project_prompt.width = 512
+        bpy.context.scene.dream_textures_project_prompt.height = 128
+        bpy.context.scene.dream_textures_project_prompt.width = 128
         bpy.context.scene.dream_textures_project_prompt.model = 'models--stabilityai--stable-diffusion-2-depth'
         bpy.context.scene.dream_textures_project_prompt.optimizations_sequential_cpu_offload = True
-        bpy.context.scene.dream_textures_project_prompt.optimizations_batch_size = 3
+        bpy.context.scene.dream_textures_project_prompt.optimizations_batch_size = 1
         bpy.context.scene.dream_textures_project_prompt.scheduler = 'Euler Ancestral Discrete'
         bpy.context.scene.currentFalseTexture = 1
         loadHDRIs(context)
@@ -1073,7 +1074,7 @@ def loadHDRIs(context):
         getCyclesImage(file)
         #bpy.ops.image.open(filepath=file, directory="C:\\Users\\lopez\\Desktop\\Hackathon\\blender_final_plugin\\assets\\", files=[{"name":file_name, "name":file_name}], relative_path=True, show_multiview=False)
 
-    file = txtfiles[3]
+    file = txtfiles[4]
     #for i in list(context.scene.world.node_tree.nodes):
     #    print(i.name)
     #    context.scene.world.node_tree.nodes.remove(i)
